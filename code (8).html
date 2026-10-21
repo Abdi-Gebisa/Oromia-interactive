@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="om">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Oromia STEM Suite: Physics & Optics Lab | AUSSS</title>
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Plus+Jakarta+Sans:wght@400;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <header class="app-header">
+    <div class="header-brand">
+      <div class="ausss-pill">AUSSS • OEB 2026</div>
+      <div class="title-block">
+        <h1 id="app-title">Oromia STEM Suite: Kuusaa Fiiziksii fi Optikii</h1>
+        <p class="subtitle" id="app-subtitle">Mana Barumsaa Bultii Addaa Yuunivarsiitii Amboo • Oromia STEM Innovation</p>
+      </div>
+    </div>
+    <div class="header-tools">
+      <div class="dev-tag">
+        <span class="dev-lbl" id="dev-lbl">Qopheessaan:</span>
+        <span class="dev-name">Abdi Gebisa Nagasa</span>
+      </div>
+      <button id="lang-toggle-btn" class="lang-toggle-btn" onclick="toggleLanguage()">
+        🌐 <span id="lang-current">English</span>
+      </button>
+    </div>
+  </header>
+
+  <nav class="nav-shelf">
+    <div class="mode-tabs">
+      <button class="tab-btn active" id="tab-projectile" onclick="switchTab('projectile')">🚀 <span id="tab-lbl-proj">1. Sochii Pirojektaayilii</span></button>
+      <button class="tab-btn" id="tab-refraction" onclick="switchTab('refraction')">⚡ <span id="tab-lbl-snell">2. Seera Isneel & TIR</span></button>
+      <button class="tab-btn" id="tab-lens" onclick="switchTab('lens')">🔍 <span id="tab-lbl-lens">3. Teessoo Leensii Qalloo</span></button>
+      <button class="tab-btn" id="tab-euee" onclick="switchTab('euee')">📝 <span id="tab-lbl-euee">4. Shaakala EUEE</span></button>
+    </div>
+  </nav>
+
+  <main class="workstation-grid">
+    <section class="canvas-viewport">
+      <div class="canvas-frame">
+        <canvas id="simCanvas" width="940" height="520"></canvas>
+        <div class="canvas-floating-badge"><span class="pulse-ring"></span> <span id="canvas-mode-text">Mootora Sochii Pirojektaayilii</span></div>
+      </div>
+      <div class="telemetry-bar" id="telemetry-deck"></div>
+    </section>
+
+    <aside class="control-console">
+      <!-- PANEL 1: PROJECTILE -->
+      <div class="console-module" id="panel-projectile">
+        <h2 id="proj-panel-title">Qindaa'ina Pirojektaayilii</h2>
+        <div class="param-box">
+            <div class="param-head"><label id="lbl-v0">Saffisa Jalqabaa (v₀):</label><span class="num-out" id="out-v0">40 m/s</span></div>
+            <input type="range" id="sl-v0" min="5" max="85" value="40" oninput="updatePhysics()">
+        </div>
+        <div class="param-box">
+            <div class="param-head"><label id="lbl-theta">Kofa Furguggiisaa (θ):</label><span class="num-out" id="out-theta">45.0°</span></div>
+            <input type="range" id="sl-theta" min="0" max="89" step="0.5" value="45" oninput="updatePhysics()">
+        </div>
+        <div class="param-box">
+            <div class="param-head"><label id="lbl-h0">Olka'iinsa Masaraa (h₀):</label><span class="num-out" id="out-h0">0 m</span></div>
+            <input type="range" id="sl-h0" min="0" max="60" value="0" oninput="updatePhysics()">
+        </div>
+        <div class="param-box">
+            <label id="lbl-gravity">Harkisa Lafaa (g):</label>
+            <select id="sel-gravity" class="tech-select" onchange="updatePhysics()">
+                <option value="9.80">Dachee / Earth (9.8 m/s²)</option>
+                <option value="1.62">Ji'a / Moon (1.6 m/s²)</option>
+            </select>
+        </div>
+        <div class="btn-cluster">
+            <button class="btn-action primary" onclick="launchProjectile()">🚀 <span id="lbl-btn-launch">Furguggisi</span></button>
+            <button class="btn-action secondary" onclick="resetProjectile()">↺ <span id="lbl-btn-reset-proj">Haaraa</span></button>
+        </div>
+      </div>
+
+      <!-- PANEL 2: SNELL -->
+      <div class="console-module hidden" id="panel-refraction">
+        <h2 id="snell-panel-title">Qindaa'ina Jal'ina Ifaa</h2>
+        <div class="param-box">
+          <label id="lbl-med1">Giddu-galeessa 1ffaa (n₁):</label>
+          <select id="sel-med1" class="tech-select" onchange="updatePhysics()">
+            <option value="1.0003">Qilleensa / Air</option>
+            <option value="1.333">Bishaan / Water</option>
+            <option value="1.52">Gilaasii / Glass</option>
+          </select>
+        </div>
+        <div class="param-box">
+          <label id="lbl-med2">Giddu-galeessa 2ffaa (n₂):</label>
+          <select id="sel-med2" class="tech-select" onchange="updatePhysics()">
+            <option value="1.333">Bishaan / Water</option>
+            <option value="1.0003">Qilleensa / Air</option>
+            <option value="2.42">Daayimandii / Diamond</option>
+          </select>
+        </div>
+        <div class="param-box">
+          <div class="param-head"><label id="lbl-theta1">Kofa Furguggiisaa (θ₁):</label><span class="num-out" id="out-theta1">45.0°</span></div>
+          <input type="range" id="sl-theta1" min="0" max="89.5" step="0.5" value="45" oninput="updatePhysics()">
+        </div>
+        <div id="tir-status-card" class="tir-status-box"><div class="tir-badge" id="tir-badge">NORMAL</div><p id="tir-desc">n₁·sin(θ₁) = n₂·sin(θ₂)</p></div>
+      </div>
+
+      <!-- PANEL 3: LENS -->
+      <div class="console-module hidden" id="panel-lens">
+        <h2 id="lens-panel-title">Teessoo Leensii Qalloo</h2>
+        <div class="param-box">
+          <div class="btn-toggle">
+            <button id="btn-convex" class="active" onclick="setLensType('convex')">Bukullee</button>
+            <button id="btn-concave" onclick="setLensType('concave')">Qoollee</button>
+          </div>
+        </div>
+        <div class="param-box">
+          <div class="param-head"><label id="lbl-focal">Fageenya Fookasii:</label><span class="num-out" id="out-focal">100mm</span></div>
+          <input type="range" id="sl-focal" min="40" max="180" value="100" oninput="updatePhysics()">
+        </div>
+        <div class="param-box">
+          <div class="param-head"><label id="lbl-do">Fageenya Wantaa:</label><span class="num-out" id="out-do">200mm</span></div>
+          <input type="range" id="sl-do" min="30" max="360" value="200" oninput="updatePhysics()">
+        </div>
+      </div>
+
+      <!-- PANEL 4: EUEE -->
+      <div class="console-module hidden" id="panel-euee">
+        <h2 id="euee-panel-title">Shaakala Qormaata EUEE</h2>
+        <div id="quiz-container"></div>
+        <div class="quiz-score-board"><span id="score-label">Score:</span> <strong id="score-value">0/0</strong></div>
+      </div>
+    </aside>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
