@@ -29,26 +29,32 @@ const i18n = {
 const canvas = document.getElementById('simCanvas');
 const ctx = canvas.getContext('2d');
 
-// --- NAVIGATION CORE (THE FIX) ---
+// --- NAVIGATION CORE ---
 function switchTab(tabId) {
     activeTab = tabId;
     
     // Update Tab Buttons
     document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-    document.getElementById('tab-' + tabId).classList.add('active');
+    const targetTab = document.getElementById('tab-' + tabId);
+    if(targetTab) targetTab.classList.add('active');
 
     // Update Panels
     document.querySelectorAll('.console-module').forEach(panel => panel.classList.add('hidden'));
-    document.getElementById('panel-' + tabId).classList.remove('hidden');
+    const targetPanel = document.getElementById('panel-' + tabId);
+    if(targetPanel) targetPanel.classList.remove('hidden');
 
     // Update Badge
-    document.getElementById('canvas-mode-text').innerText = i18n[currentLang]['badge' + tabId.charAt(0).toUpperCase() + tabId.slice(1)];
+    const badgeEl = document.getElementById('canvas-mode-text');
+    if(badgeEl) {
+        badgeEl.innerText = i18n[currentLang]['badge' + tabId.charAt(0).toUpperCase() + tabId.slice(1)];
+    }
     
     updatePhysics();
 }
 
 // --- PHYSICS DISPATCHER ---
 function updatePhysics() {
+    if(!canvas) return;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     if (activeTab === 'projectile') renderProjectile();
     if (activeTab === 'refraction') renderSnell();
@@ -57,9 +63,9 @@ function updatePhysics() {
 }
 
 // --- MODULE: PROJECTILE ---
-let projT = 0, isFiring = false, history = [];
-function launchProjectile() { isFiring = true; projT = 0; history = []; animateProj(); }
-function resetProjectile() { isFiring = false; projT = 0; history = []; updatePhysics(); }
+let projT = 0, isFiring = false;
+function launchProjectile() { isFiring = true; projT = 0; animateProj(); }
+function resetProjectile() { isFiring = false; projT = 0; updatePhysics(); }
 
 function animateProj() {
     if(!isFiring || activeTab !== 'projectile') return;
@@ -88,7 +94,8 @@ function renderProjectile() {
     const curY = h0 + vy0 * projT - 0.5 * g * projT * projT;
 
     // Draw Ground
-    ctx.strokeStyle = "#2f3e58"; ctx.beginPath(); ctx.moveTo(0, 470); ctx.lineTo(940, 470); ctx.stroke();
+    ctx.strokeStyle = "#2f3e58"; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(0, 470); ctx.lineTo(940, 470); ctx.stroke();
     
     // Draw Ball
     ctx.fillStyle = "#00f2fe"; ctx.beginPath(); ctx.arc(50 + curX*2, 470 - curY*2, 8, 0, Math.PI*2); ctx.fill();
@@ -113,7 +120,8 @@ function renderSnell() {
     // Draw Boundary
     ctx.fillStyle = "#0a1020"; ctx.fillRect(0,0,940,260);
     ctx.fillStyle = "#0f172a"; ctx.fillRect(0,260,940,260);
-    ctx.strokeStyle = "#3b82f6"; ctx.beginPath(); ctx.moveTo(0,260); ctx.lineTo(940,260); ctx.stroke();
+    ctx.strokeStyle = "#3b82f6"; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(0,260); ctx.lineTo(940,260); ctx.stroke();
 
     // Incident Ray
     ctx.strokeStyle = "#00f2fe"; ctx.lineWidth = 3;
@@ -132,7 +140,13 @@ function renderSnell() {
 }
 
 // --- MODULE: LENS ---
-function setLensType(type) { lensType = type; updatePhysics(); }
+function setLensType(type) { 
+    lensType = type; 
+    document.getElementById('btn-convex').classList.toggle('active', type === 'convex');
+    document.getElementById('btn-concave').classList.toggle('active', type === 'concave');
+    updatePhysics(); 
+}
+
 function renderLens() {
     const fAbs = parseFloat(document.getElementById('sl-focal').value);
     const doDist = parseFloat(document.getElementById('sl-do').value);
@@ -142,28 +156,38 @@ function renderLens() {
     document.getElementById('out-focal').innerText = fAbs + "mm";
     document.getElementById('out-do').innerText = doDist + "mm";
 
-    ctx.strokeStyle = "#475569"; ctx.beginPath(); ctx.moveTo(0, 260); ctx.lineTo(940, 260); ctx.stroke();
+    ctx.strokeStyle = "#475569"; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(0, 260); ctx.lineTo(940, 260); ctx.stroke();
+    
     // Lens
     ctx.strokeStyle = "#00f2fe"; ctx.lineWidth = 4;
     ctx.beginPath(); ctx.moveTo(470, 100); ctx.lineTo(470, 420); ctx.stroke();
+    
     // Object
-    ctx.strokeStyle = "#fff"; ctx.beginPath(); ctx.moveTo(470 - doDist, 260); ctx.lineTo(470 - doDist, 200); ctx.stroke();
+    ctx.strokeStyle = "#fff"; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(470 - doDist, 260); ctx.lineTo(470 - doDist, 200); ctx.stroke();
+    
     // Image
     if(isFinite(di)) {
-        ctx.strokeStyle = "#10b981"; ctx.beginPath(); ctx.moveTo(470 + di, 260); ctx.lineTo(470 + di, 260 + (di/doDist)*60); ctx.stroke();
+        ctx.strokeStyle = "#10b981";
+        ctx.beginPath(); ctx.moveTo(470 + di, 260); ctx.lineTo(470 + di, 260 + (di/doDist)*60); ctx.stroke();
     }
 }
 
 // --- MODULE: EUEE ---
 function renderEuee() {
-    document.getElementById('quiz-container').innerHTML = "<p style='color:#94a3b8'>EUEE Question Bank Loaded. Select an answer to see solution.</p>";
+    const box = document.getElementById('quiz-container');
+    if(box) box.innerHTML = "<p style='color:#94a3b8; font-family:monospace;'>EUEE National Exam Question Bank Active.</p>";
 }
 
 function toggleLanguage() {
     currentLang = (currentLang === 'om') ? 'en' : 'om';
-    document.getElementById('lang-current').innerText = (currentLang === 'om') ? 'English' : 'Afaan Oromoo';
+    const langBtn = document.getElementById('lang-current');
+    if(langBtn) langBtn.innerText = (currentLang === 'om') ? 'English' : 'Afaan Oromoo';
     switchTab(activeTab);
 }
 
-// Init
-window.onload = () => switchTab('projectile');
+// Initialize on Load
+window.addEventListener('DOMContentLoaded', () => {
+    switchTab('projectile');
+});
